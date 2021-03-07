@@ -104,8 +104,15 @@ public:
 	static void htc_dumlock_restore_original_boot(void);                        // Restores the backup of boot from HTC Dumlock
 	static void htc_dumlock_reflash_recovery_to_boot(void);                     // Reflashes the current recovery to boot
 
-	static bool Get_Encryption_Policy(fscrypt_encryption_policy &policy, std::string path); // return encryption policy for path
-	static bool Set_Encryption_Policy(std::string path, const fscrypt_encryption_policy &policy); // set encryption policy for path
+#ifdef TW_INCLUDE_CRYPTO
+#ifdef USE_FSCRYPT_POLICY_V1
+	static bool Get_Encryption_Policy(struct fscrypt_policy_v1 &policy, std::string path); // return encryption policy for path
+	static bool Set_Encryption_Policy(std::string path, struct fscrypt_policy_v1 &policy); // set encryption policy for path
+#else
+	static bool Get_Encryption_Policy(struct fscrypt_policy_v2 &policy, std::string path); // return encryption policy for path
+	static bool Set_Encryption_Policy(std::string path, struct fscrypt_policy_v2 &policy); // set encryption policy for path
+#endif
+#endif
 	static void List_Mounts();
 	static void Clear_Bootloader_Message();
 
