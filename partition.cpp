@@ -1654,9 +1654,18 @@ bool TWPartition::Mount(bool Display_Error) {
 	if (Removable)
 		Update_Size(Display_Error);
 
-	if (!Symlink_Mount_Point.empty() && TWFunc::Path_Exists(Symlink_Path)) {
-		string Command = "/system/bin/mount -o bind '" + Symlink_Path + "' '" + Symlink_Mount_Point + "'";
-		TWFunc::Exec_Cmd(Command);
+	if (!Symlink_Mount_Point.empty()) {
+		if (!Bind_Mount(false))
+			return false;
+	}
+	return true;
+}
+
+bool TWPartition::Bind_Mount(bool Display_Error) {
+	if (TWFunc::Path_Exists(Symlink_Path)) {
+		if (mount(Symlink_Path.c_str(), Symlink_Mount_Point.c_str(), "", MS_BIND, NULL) < 0) {
+			return false;
+		}
 	}
 	return true;
 }
@@ -2115,11 +2124,11 @@ bool TWPartition::Wipe_Encryption() {
 	Is_Encrypted = false;
 	if (Wipe(Fstab_File_System)) {
 		Has_Data_Media = Save_Data_Media;
-		//if (Has_Data_Media && !Symlink_Mount_Point.empty()) {
-		//	Recreate_Media_Folder();
-		//	if (Mount(false))
-		//		PartitionManager.Add_MTP_Storage(MTP_Storage_ID);
-		//}
+		if (Has_Data_Media && !Symlink_Mount_Point.empty()) {
+			Recreate_Media_Folder();
+			if (Mount(false))
+				PartitionManager.Add_MTP_Storage(MTP_Storage_ID);
+		}
 		DataManager::SetValue(TW_IS_ENCRYPTED, 0);
 #ifndef TW_OEM_BUILD
 		gui_msg("format_data_msg=You may need to reboot recovery to be able to use /data again.");
